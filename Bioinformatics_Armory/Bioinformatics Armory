@@ -1,0 +1,477 @@
+# Import packages
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
+from Bio import ExPASy
+from Bio import SwissProt
+from Bio import Entrez
+from Bio import SeqIO
+from Bio.Alphabet import IUPAC
+import numpy as np
+
+# Define OS environment
+windows='D:/'
+linux='/media/jeff/Data/'
+project_directory='MEGA/x- Jeff- Programs & Modules/Rosalind/Bioinformatics Armory/'
+os=windows
+
+# Define console output Colors
+class Color:
+    Purple = '\033[95m'
+    Cyan = '\033[96m'
+    DarkCyan = '\033[36m'
+    Blue = '\033[94m'
+    Green = '\033[92m'
+    Yellow = '\033[93m'
+    Red = '\033[91m'
+    Bold = '\033[1m'
+    Underline = '\033[4m'
+    End = '\033[0m'
+
+# Define special functions
+def readable_print(list, number):
+    count = 0
+    readout = []
+    for i in list:
+        readout.append(i)
+        count += 1
+        if count == number:
+            print(readout)
+            readout = []
+            count = 0
+    print('')
+
+def file_len_v2(file):  # more memory efficient?
+    for i, l in enumerate(file):
+            pass
+    return i + 1
+
+def fasta_dict(file):
+    input_file = os + project_directory + file
+
+    sum_lines = file_len_v2(input_file)
+
+    array = {}
+    with open(input_file) as f:
+        for i in range(sum_lines):
+            y = f.readline()
+            if '>' in y:
+                k = y.strip('>')
+                n = k.strip('\n')
+                array[n] = ''
+            else:
+                b = y.strip('\n')
+                array[n] += b
+        return array
+
+print(Color.Green + '''Rosalind Armory: prefix arm_
+Anaconda:   Installed via windows installer.
+            Access Anaconda terminal and type> conda list to see available packages
+            *How to identify the import name and convention?
+BioPython:  This package can be fetched and installed from the native Anaconda command prompt.
+            *How to list the modules in Biopython?
+            ''' + Color.End)
+
+print(Color.Blue + '''arm_ini
+Given:      A DNA string s of length at most 1000 bp.
+Return:     Four integers (separated by spaces) representing the respective number of times that the symbols 'A', 'C', 'G', and 'T' occur in s.
+Package:    from Bio.Seq import Seq
+Conv:       Biopython = Bio
+            Seq = Seq, a class that includes many sequence manipulation methods, see help() for algorithm limitations
+Other uses:
+            Seq object can also generate:
+                Complement and reverse complement- complement(), reverse_complement()
+                Transcription and back transcription- transcribe(), back_transcribe()
+                Translation- translate()
+                to utilise these functions the given sequence must be converted to the Seq class''' + Color.End)
+print(Color.Red + '''Questions:  What is class really? How do they work?
+            What do double underscore lines mean? i.e. __init__?
+            How does 'from Bio.Seq import Seq' differ compared to 'from Bio import Seq'?''' + Color.End)
+
+# from Bio.Seq import Seq
+# from Bio.Alphabet import generic_dna
+
+with open(os + project_directory + 'arm test files/rosalind_ini.txt') as y:
+    z = y.read()
+    f = z.strip('\n')
+
+my_seq=Seq(f)
+print(my_seq)
+my_seq=Seq(f,generic_dna) #defining the Seq alphabet will prevent you from adding different types of sequences together i.e. protein, RNa or DNA.
+print(my_seq.count('A'), my_seq.count('C'), my_seq.count('G'), my_seq.count('T'))
+# but the above example does not, in any way, show how Seq is useful because, as below, the native python
+# count function does just fine.
+print(f.count('A'),f.count('C'),f.count('G'),f.count('T'))
+print('')
+
+print(Color.Blue + '''arm_dbpr
+Given:      The UniProt ID of a protein.
+Return:     A list of biological processes in which the protein is involved (biological processes are found in a subsection of the protein's 'Gene Ontology' (GO) section).
+Package:    from Bio import ExPASy
+            from Bio import SwissProt
+Conv:       ExPASy = ExPASy
+            SwissProt = SwissProt
+            ExPASy.get_sprot_raw= returns http used by SwissProt, only good for 1 arg?
+            SwissProt.read(x)
+            SwissProt.parse(x, y, z)
+            dir = use to query SwissProt record
+Other uses: ExPASy
+            ExPasy package is used to fetch web resources
+            Prodoc handle (html)- get_prodoc_entry(id, cgi='http://www.expasy.ch/cgi-bin/get-prodoc-entry')
+            Prosite handle (html)- get_prosite_entry(id, cgi='http://www.expasy.ch/cgi-bin/get-prosite-entry')
+            Prosite/Prodoc handle (raw)- get_prosite_raw(id, cgi='http://www.expasy.ch/cgi-bin/get-prosite-raw.pl')
+            SwissProt handle (raw)-get_sprot_raw(id)
+Other uses: SwissProt
+            SwissProt Package also has functions that can specifically read out parts of an entry (i.e. like reference number etc) ''' + Color.End)
+print(Color.Red + '''Questions:  What types are the items listed by dir? Are they classes?
+            How is the webpage information organised into the format retrieved?''' + Color.End)
+
+# from Bio import ExPASy
+# from Bio import SwissProt
+
+with open(os + project_directory + 'arm test files/rosalind_dbpr.txt') as y:
+    z = y.read()
+    f = z.strip('\n')
+
+handle = ExPASy.get_sprot_raw(f)
+record = SwissProt.read(handle)
+
+print ('Protein ID: ' +f)
+print(handle)
+print(record)
+print('')
+readable_print(dir(record),6)
+# now calling a method? class? listed in dir
+readable_print(record.cross_references[0:], 3)
+# find GO terms?
+for i in record.cross_references[0:]:
+    if 'GO' in i:
+        print(i)
+print('')
+
+print(Color.Blue + '''arm_frmt
+Given: A collection of n (n≤10  ) GenBank entry IDs.
+Return: The shortest of the strings associated with the IDs in FASTA format.
+Package:    from Bio import Entrez
+Conv:       Entrez = Entrez
+            Entrez.efetch
+Other uses: Entrez
+            Entrez basically provides access to the NCBI site. It has a number of functions that allow the manipulation of fetched results.
+            An email variable must be set in order to access the NCBI database
+Other uses: SeqIO
+            handles a variety of file formats that must be specified when calling the function
+            can convert between formats
+            can convert formats into lists, dictionaries, iterators
+            can be useful for handling machine raw data
+            can be useful for converting info retrieved online when combined with other packages such as Entrez
+            can also write outputs to string instead of a file format- although .write is generally recommended
+            see online documentation for details''' + Color.End)
+print(Color.Red + '''Questions:  I don't really understand the format of the SeqIO parse record''' + Color.End)
+
+with open(os + project_directory + 'arm test files/rosalind_frmt.txt') as y:
+    z = y.read()
+    f = z.strip('\n')
+
+# from Bio import Entrez
+Entrez.email = 'jeffsmith8@gmail.com'
+handle = Entrez.efetch(db='nucleotide', id=['BT149870, JX469983, NM_001197168, HM595636, JX317624, FJ817486, JX069768, JQ342169, NM_002133'], rettype='fasta')
+records = handle.read()
+print(records)
+frmt_str=''
+for i in records.split('\n'):
+    if '>' in i:
+        frmt_str+='\n'+i+'\n'
+    else:
+        frmt_str+=i
+print (frmt_str)
+print('')
+
+# from Bio import Entrez
+# from Bio import SeqIO
+Entrez.email = 'jeffsmith8@gmail.com'
+handle = Entrez.efetch(db='nucleotide', id=['BT149870, JX469983, NM_001197168, HM595636, JX317624, FJ817486, JX069768, JQ342169, NM_002133'], rettype='fasta')
+records = list (SeqIO.parse(handle, 'fasta')) #we get the list of SeqIO objects in FASTA format
+print(records)
+print('')
+for i in records:
+    print (i + '\n'*2)
+print (readable_print(dir(records[0]),6))
+print('')
+
+
+print(Color.Blue + '''arm_meme
+Given: A set of protein strings in FASTA format that share some motif with minimum length 20.
+Return: Regular expression for the best-scoring motif.
+Package:    from Bio import Entrez
+Conv:       Entrez = Entrez
+            Entrez.efetch''' + Color.End)
+print(Color.Red + '''Questions:  The queue time for my job exceeds the Rosalind time
+Answer:     Queue the job on an alternative server. Manually annotate the txt output into Rosalind format ''' + Color.End)
+print('Completed online')
+print('')
+
+print(Color.Blue + '''arm_need
+An online interface to EMBOSS's Needle tool for aligning DNA and RNA strings can be found here.
+Use:
+            The DNAfull scoring matrix; note that DNAfull uses IUPAC notation for ambiguous nucleotides.
+            Gap opening penalty of 10.
+            Gap extension penalty of 1.
+For our purposes, the 'pair' output format will work fine; this format shows the two strings aligned at the bottom of the output file beneath some statistics about the alignment.
+Given:      Two GenBank IDs.
+Return:     The maximum global alignment score between the DNA strings associated with these IDs. ''' + Color.End)
+print(Color.Red + '''Questions:  Can the score be at all meaningful empirically?
+            Or is it only meaningful relatively- i.e. for choosing the highest scoring matches?''' + Color.End)
+print('Completed online')
+
+print(Color.Blue + '''arm_tfsq
+Problem:    Sometimes it's necessary to convert data from FASTQ format to FASTA format. For example, you may want to perform a BLAST search using reads in FASTQ format obtained from your brand new Illumina Genome Analyzer.
+Links:      A FASTQ to FASTA converter can be accessed from the Sequence conversion website
+            A free GUI converter developed by BlastStation is available here for download or as an add-on to Google Chrome.
+            There is a FASTQ to FASTA converter in the Galaxy web platform. Note that you should register in the Galaxy and upload your file prior to using this tool.
+            Biopython SeqIO will also do it.
+Given:      FASTQ file
+Return:     Corresponding FASTA records
+Package:    SeqIO.convert(input file path, input format, output file path, output format)
+            Notes: SeqIO can take either fastq or txt as an input file but the input format still needs to reflect the convention i.e. fastq
+            Output file path and format convention, however, must match ''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+
+SeqIO.convert(os + project_directory + 'arm test files/rosalind_tfsq.fastq', 'fastq-illumina', os + project_directory + 'arm test files/output-rosalind_tfsq.fasta', 'fasta')
+print('Completed by file generation')
+print('')
+
+print(Color.Blue + '''arm_prta
+Problem:    The 20 commonly occurring amino acids are abbreviated by using 20 letters from the English alphabet (all letters except for B, J, O, U, X, and Z).
+            Protein strings are constructed from these 20 symbols. The RNA codon table shows the encoding from each RNA codon to the amino acid alphabet.
+            The Translate tool from the SMS 2 package can be found here in the SMS 2 package
+            A detailed list of genetic code variants (codon tables) along with indexes representing these codes (1 = standard genetic code, etc.) can be obtained here.
+            For now, when translating DNA and RNA strings, we will start with the first letter of the string and ignore stop codons.
+Links:      http://www.bioinformatics.org/sms2/translate.html
+Given:      A DNA string s of length at most 10 kbp, and a protein string translated by s.
+Return:     The index of the genetic code variant that was used for translation. (If multiple solutions exist, you may return any one.)
+Package:    The translate method from biopython can process translations in different genetic code variants ''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+print('This is a kind of weird exercise. I just ran the sequences online and identified the index manually. The indexes for the different genetic code variants can be found online')
+print('')
+
+print(Color.Blue + '''arm_subo
+Problem:    The Lalign program for finding multiple alternative matches via suboptimal alignment is available here.
+Links:      http://www.ebi.ac.uk/Tools/psa/lalign/
+Given:      Two DNA strings s and t in FASTA format that share some short inexact repeat r of 32-40 bp. By "inexact" we mean that r may appear with slight modifications
+            (each repeat differ by ≤3 changes/indels).
+Return:     The total number of occurrences of r as a substring of s, followed by the total number of occurrences of r as a substring of t.
+Packages:   Lalign is part of William Pearson's FASTA package, which you can download from its homepage The FASTA package manual contains descriptions of this program and its command line arguments.
+            This package is only available in a linux variant. I have not installed it.''' + Color.End)
+print(Color.Red + '''Questions:  I ran this online, then chose the shortest substring 32<n<40, then
+            used that substring in the approximatepatterncount function from Bioinformatics for Beginners
+            with hamming distance <=3 but cant seem to get the right result! :(''' + Color.End)
+
+def HammingDistance(p,q):
+    HamDist=0
+    for i in range(0,len(p)):
+        if p[i] is not q[i]:
+            HamDist+=1
+    return HamDist
+
+def ApproximatePatternCount(Pattern, Text, d):
+    count = 0
+    for i in range(len(Text) - len(Pattern) + 1):
+        x=Pattern
+        y = Text[i:i + len(Pattern)]
+        if HammingDistance(x,y)<=d:
+            count = count + 1
+    return count
+
+print(ApproximatePatternCount('TTTCCTAGTACTAGAATAATCCCCGCTTCGAC', '''AGCCTGCGCTCTCCAAGACTTTAGGAATTCGCCAAGAACCAACACCTAAGACCAACTTGA
+ACTTTGATATCAGGCAGTGCGCGGTGACGTGCTCAATATACATTCCAGAATACATGCTGT
+TGGGGAATGTCCTGAAATCCTTTGGTCATAAACTGTGGTAGAAAACCGCGCAGCGCCACT
+AAGTTCCGGTGCAGCAGAGTCCCTGGCCACAAACGTGCGATCAGCAAGTTATGATACCAC
+TACGAGTAGGTAGTCTGTGAGGGAGACAAATTTTCCTAGTACTAGAATAATCCCCGCTTC
+GACTAACGAAGGACCGGCTCCTCGGCCGACACCAGGGAGAAGACCCGGCCTACTGTAACC
+CTTCAATAGCCGCGCTCTTACAAACTTAGTTCGCCGATCCAGGACAGGTAGGGTTCTACT
+TAGCGGCGTGGGGCTTATCTTCGAGCCCAAGGAATTTACTGATCACTGATGAAGATCGTG
+CACATTAGAGGTCATAGCTATGCTACAAGCACCAGTACACGGTCGGAACATCGGTAGCTC
+GACGGAACGAACGAAGGCCAGCACTGGGCTCTTATTTGGAGACTTCCCACCTTGCAGAGA
+TCCCGCTGGGCGTAAGGTAACGTATACGTGCACTCCGATTCTGTCGCTGGCTTTGTGCAA
+CCCAAGCGCATCCTGACGCATAAGGCAACGGATGAGTTCGCCTACCAAATTTTCCGTGTC
+TCACCCATTTTCCTAGTACTAGAATAATCCCCGCTTCGACTCGTTGCGCTTATGATGGAC
+ACGTCGTCTTAAAGCGGAATCGGTCCGGCACACTCCGGCATTTCCTAGTACTAGAATAAT
+CCCCGCTTCGACTCCAGAGCATA''', 3))
+
+print(ApproximatePatternCount('TTTCCTAGTACTAGAATAATCCCCGCTTCGAC', '''CCCACGACAACATACAGACCCGATGGTTGTAGTTCTAAACAACAGAGTGCAGACGTAGTG
+CCATCTGGCATGGAACCCCCGAAACCTACACTAAATGAGAGGACAAACTCTACGTTTCGT
+GTCTGTCGCATTTTTGAAAATTTTCCTAGTACTAGAATAATCCCCGCTTCGACTAAAGCC
+CTTAGTTTCCTAGTACTAGAATAATCCCCGCTTCGACTCCACTCAGAAGTTTTCCTAGTA
+CTAGAATAATCCCCGCTTCGACTTTGAATGCGTTCAGGCATACGATACCCATTCTAGTCA
+CCCTTGACTGTTTGGAAAGGGAGCTTACCATGGTGGGTTGGACTACCTCTCTATAAAAAG
+TGACAATTGTTCCTAGTACTAGAATAATCCCCGCTTCGACTTCTATCGATAGGGCTGTGC
+AGCAAGGCGACTCTGTAGAATGTTATTGGTGTCTTTCCTAGTACTAGAATAATCCCCGCT
+TCGACTGGCTAGCGTTATTTCCTAGTACTAGAATAATCCCCGCTTCGACTAGTTGCGGGA
+GGGATACAGAACGGTAGGACCCGGAGAATTCTTTCACCGGAATTTCCTAGTACTAGAATA
+ATCCCCGCTTCGACTGCTAGCATCAGTTGTCGACTGGAATTTTACCGGAGGGCCATCGGT
+TTCTATTCATTTCCTAGTACTAGAATAATCCCCGCTTCGACTGCGTGCTATCTGCGGGTG
+GGGAAAAAGTGCTAGTTTGGCTTGTGATTTTGCAACCTCTGGTCCTGTGGGTGTCTGATT
+CTCGAGCATAACAAGTGCTTCCTAGTACTAGAATAATCCCCGCTTCGACTGTCCTGTTGC''', 3))
+
+print (len('AAGTAGCCAAGGCCTAGTTCTGTGATTGGCATGTCGGGTTC'))
+print (len('GTAGCCAAGGCCTAGTTCTGTGATTGGCATGTCGGGTTCA'))
+print (len('GTAGCCAAGGCCTAGTTCTGTGATTGGCATGTCGGGTT'))
+print('')
+print(Color.Blue + '''arm_phre
+Problem:    A version of FastQC can be downloaded here and run locally on any operating system with a suitable Java Runtime Environment (JRE) installed.
+            An downloadable version of FastQC is available here http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+            An online version is available in Galaxy
+Given:      A quality threshold, along with FASTQ entries for multiple reads.
+Return:     The number of reads whose average quality is below the threshold.
+Packages:   When used to read FASTQ data, BioPython's function SeqIO.parse returns a SeqRecord object containing the
+            Phred quality scores corresponding to each base of the sequence. The scores are found in the .letter_annotations
+            attribute, which is a Python dictionary having, in this case, a single key, 'phred_quality.'
+            see arm_phre for code. presumably if you choose to do it from python you can use numpy and pandas to
+            generate a graph''' + Color.End)
+print(Color.Red + '''Questions:  Can I use python to fetch the results from an online FastQC run and then build a pandas graph?''' + Color.End)
+print('I\'ve run this through my online Galaxy profile- learning to use Galaxy properly would be worthwhile' )
+print('')
+for index, record in enumerate(SeqIO.parse(os + project_directory +'arm test files/rosalind_phre - Copy.txt', 'fastq')):
+    print("index %i, ID = %s, length %i, with %s features"
+          % (index, record.id, len(record.seq), record.letter_annotations['phred_quality']))
+
+print('')
+print(Color.Blue + '''arm_rvco
+Problem:    Recall that in a DNA string s, 'A' and 'T' are complements of each other, as are 'C' and 'G'.
+            Furthermore, the reverse complement of s is the string sc formed by reversing the symbols of sand then
+            taking the complement of each symbol (e.g., the reverse complement of "GTCA" is "TGAC").
+            The Reverse Complement program from the SMS 2 package can be run online here.
+Given:      A collection of n(n≤10) DNA strings.
+Return:     The number of given strings that match their reverse complements.
+Packages:   IUPAC
+            Alphabet used to represent given sequence codes, includes:
+            extended_protein = ExtendedIUPACProtein()
+            protein = IUPACProtein()
+            ambiguous_dna = IUPACAmbiguousDNA()
+            unambiguous_dna = IUPACUnambiguousDNA()
+            extended_dna = ExtendedIUPACDNA()
+            ambiguous_rna = IUPACAmbiguousRNA()
+            unambiguous_rna = IUPACUnambiguousRNA()
+            ''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+
+# from Bio.Alphabet import IUPAC
+
+rvco_dict=fasta_dict('arm test files/rosalind_rvco.txt')
+for i in rvco_dict:
+    rvco_dict[i]=Seq(rvco_dict[i],IUPAC.unambiguous_dna)
+print(rvco_dict)
+
+palindromes=0
+for k in rvco_dict:
+    m=Seq.reverse_complement(rvco_dict[k])
+    if m==rvco_dict[k]:
+        palindromes+=1
+print(palindromes)
+
+print('')
+print(Color.Blue + '''arm_clus
+Problem:    One of the first and commonly used programs for MSA is Clustal, developed by Des Higgins in 1988.
+            The current version using the same approach is called ClustalW2, and it is embedded in many
+            software packages. There is even a modification of ClustalW2 called ClustalX that provides a
+            graphical user interface for MSA.
+            See the link below for a convenient online interface that runs Clustal on the EBI website:
+            http://www.ebi.ac.uk/Tools/msa/
+            Select "Protein" or "DNA", then either paste your sequence in one of the listed formats or upload an
+            entire file. To obtain a more accurate alignment, leave Alignment type: slow selected: if you choose to run
+            Clustal on only two sequences, then the parameter options correspond to those in Needle (see “Pairwise Global Alignment”).
+Given:      Set of nucleotide strings in FASTA format.
+Return:     ID of the string most different from the others.''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+print('Solving this one looks easy- but I cant until bloody arm_subo is solved!')
+
+print('')
+print(Color.Blue + '''arm_filt
+Problem:    Poor-quality reads can be filtered out using the FASTQ Quality Filter tool from the FASTX toolkit. A command-line version of FASTX can be downloaded for Linux or MacOS from its website. An online interface for the FASTQ Quality Filter is also available here within the Galaxy web platform.
+Given:      A quality threshold value q, percentage of bases p, and set of FASTQ entries.
+Return:     Number of reads in filtered FASTQ entries
+Links       Galaxy''' + Color.End)
+print(Color.Red + '''Questions:  Surely this job can be automated by SeqIO convert as well...''' + Color.End)
+print('''I've used galaxy by uploading the text file and then converted file format by
+            >edit >datatype> fastqsanger
+            NGS QC and manipulation >filter by quality''')
+
+print('')
+print(Color.Blue + '''arm_orfr
+Problem:    An ORF begins with a start codon and ends either at a stop codon or at the end of the string.
+            We will assume the standard genetic code for translating an RNA string into a protein string (i.e., see the
+            standard RNA codon table).
+            ORF finder from the SMS 2 package can be run online here- http://www.bioinformatics.org/sms2/orf_find.html
+Given:      A DNA string s of length at most 1 kbp.
+Return:     The longest protein string that can be translated from an ORF of s. If more than one protein string of
+            maximum length exists, then you may output any solution.
+Packages:   We can also find ORFs using the EMBOSS program getorf. It can be downloaded and run locally.
+            The documentation can be found here.
+            To find ORFs using Biopython, it may be useful to recall the translate() and reverse_complement() methods from the Bio.Seq module.
+            ALSO, I wrote my own function in native python which lists every orf translation in every frame: ros_orf''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+print('I used the function I coded myself- ros_orf')
+
+print('')
+print(Color.Blue + '''arm_bphr
+Problem:    Quality of the bases can vary depends on position in read due to nature of the sequencing procedure.
+            One can check this quality distribution using "Per Base Sequence Quality" module of the FastQC program.
+            Average accepted quality values is a 10 for the lower quartile and 25 for median. If the values falls
+            below this limit the module rises a warning.
+            Note that for the reads >50bp long FastQC will group the bases. To show data for every base in the read use "--nogroup" option.
+Given:      FASTQ file, quality threshold q
+Return:     Number of positions where mean base quality falls below given threshold''' + Color.End)
+print(Color.Red + '''Questions:  ''' + Color.End)
+
+# Create a list of lists for parsed phred quality scores where index = base position'
+bphr_phred=[]
+for i, record in enumerate(SeqIO.parse(os + project_directory +'arm test files/rosalind_bphr.txt', 'fastq')):
+    bphr_phred.append(record.letter_annotations['phred_quality'])
+
+# Create a numpy array from the phred lists to easily compute base position mean
+bphr_phred_array=np.array(bphr_phred)
+
+# Create a list of phred means for each base position
+bphr_phred_mean=np.mean(bphr_phred_array, axis=0)
+
+# Count the number of base positions at which the mean falls below a given threshold
+bphr_thresh_count=0
+for i in bphr_phred_mean:
+    if i<18:
+        bphr_thresh_count+=1
+
+print('Create a list of lists for parsed phred quality scores where index = base position')
+print(bphr_phred)
+print('')
+
+print('Create a numpy array from the phred lists to easily compute base position mean')
+print(bphr_phred_array)
+print('')
+
+print('Create a list of phred means for each base position')
+print(bphr_phred_mean)
+print('')
+
+print('Count the number of base positions at which the mean falls below a given threshold')
+print(bphr_thresh_count)
+
+
+# The below is me fiddling with the seqIO record trying to make a function that converts
+# single-line fastq into multiline fastq
+# generate multiline fastq from single line
+file='arm test files/Galaxy14-[FASTQ_Quality_Trimmer_on_data_12].fastq'
+new_record=SeqIO.parse(os + project_directory + 'arm test files/Galaxy14-[FASTQ_Quality_Trimmer_on_data_12].fastq', 'fastq')
+newer_record=[]
+all_records=[]
+
+# print(readable_print(dir(new_record.),6))
+with open(os + project_directory + file) as f:
+    for i, record in enumerate(SeqIO.parse(os + project_directory + file, 'fastq')):
+        print("index %i, ID = %s, length %i, with %s features"
+              % (index, record.id, len(record.seq), record.letter_annotations['phred_quality']))
+        all_records.append(record)
+        newer_record.append(record.id)
+        newer_record.append(record.seq)
+        newer_record.append(record.letter_annotations['phred_quality'])
+
+print(all_records)
+print(newer_record)
